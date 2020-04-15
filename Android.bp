@@ -4,7 +4,7 @@ subdirs = [
 
 hidl_package_root {
     name: "vendor.qti.hardware.radio.am",
-    path: "vendor/oss/qcrilam/interface/am",
+    path: "packages/apps/QcRilAm/interface/am",
 }
 
 android_app {
