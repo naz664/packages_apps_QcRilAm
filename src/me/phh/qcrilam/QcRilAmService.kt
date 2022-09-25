@@ -18,7 +18,7 @@
  * Rewritten in Kotlin by Pavel Dubrova <pashadubrova@gmail.com>
  */
 
-package com.sony.qcrilam
+package me.phh.qcrilam
 
 import android.app.Service
 import android.content.Intent
@@ -27,19 +27,17 @@ import android.os.IBinder
 import android.os.RemoteException
 import android.telephony.SubscriptionManager
 import android.util.Log
-import vendor.qti.hardware.radio.am.V1_0.IQcRilAudio
-import vendor.qti.hardware.radio.am.V1_0.IQcRilAudioCallback
 
 private const val TAG = "QcRilAm-Service"
 
 class QcRilAmService : Service() {
     private fun addCallbackForSimSlot(simSlotNo: Int, audioManager: AudioManager) {
         try {
-            val qcRilAudio = IQcRilAudio.getService("slot$simSlotNo", true /*retry*/)
-            if (qcRilAudio == null) {
+            val qcRilAudio1 = vendor.qti.hardware.radio.am.V1_0.IQcRilAudio.getService("slot$simSlotNo", true /*retry*/)
+            if (qcRilAudio1 == null) {
                 Log.e(TAG, "Could not get service instance for slot$simSlotNo, failing")
             } else {
-                qcRilAudio.setCallback(object : IQcRilAudioCallback.Stub() {
+                qcRilAudio1.setCallback(object : vendor.qti.hardware.radio.am.V1_0.IQcRilAudioCallback.Stub() {
                     override fun getParameters(keys: String?): String {
                         return audioManager.getParameters(keys)
                     }
@@ -53,7 +51,29 @@ class QcRilAmService : Service() {
                     }
                 })
             }
-        } catch (exception: RemoteException) {
+        } catch (e: Exception) {
+            Log.e(TAG, "RemoteException while trying to add callback for slot$simSlotNo")
+        }
+        try {
+            val qcRilAudio2 = vendor.qti.qcril.am.V1_0.IQcRilAudio.getService("slot$simSlotNo", true /*retry*/)
+            if (qcRilAudio2 == null) {
+                Log.e(TAG, "Could not get service instance for slot$simSlotNo, failing")
+            } else {
+                qcRilAudio2.setCallback(object : vendor.qti.qcril.am.V1_0.IQcRilAudioCallback.Stub() {
+                    override fun getParameters(keys: String?): String {
+                        return audioManager.getParameters(keys)
+                    }
+
+                    override fun setParameters(keyValuePairs: String?): Int {
+                        // AudioManager.setParameters does not check nor return
+                        // the value coming from AudioSystem.setParameters.
+                        // Assume there was no error:
+                        audioManager.setParameters(keyValuePairs)
+                        return 0
+                    }
+                })
+            }
+        } catch (e: Exception) {
             Log.e(TAG, "RemoteException while trying to add callback for slot$simSlotNo")
         }
     }

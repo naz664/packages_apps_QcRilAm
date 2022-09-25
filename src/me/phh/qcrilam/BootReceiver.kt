@@ -18,7 +18,7 @@
  * Rewritten in Kotlin by Pavel Dubrova <pashadubrova@gmail.com>
  */
 
-package com.sony.qcrilam
+package me.phh.qcrilam
 
 import android.content.BroadcastReceiver
 import android.content.Context
